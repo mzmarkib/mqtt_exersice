@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+
+		<!-- CSS only -->
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+			crossorigin="anonymous"
+		/>
+		<!-- Leaflet CSS -->
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+			integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+			crossorigin=""
+		/>
+
+		<style>
+			#map {
+				height: 180px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<nav class="navbar navbar-dark bg-dark rounded-1">
+				<div class="container-fluid">
+					<span class="navbar-brand mb-0 h1 d-block ms-auto me-auto"
+						>MQTT & Leaflet Exercise</span
+					>
+				</div>
+			</nav>
+
+			<div class="row">
+				<div class="col">
+					<div class="card mt-2">
+						<div class="card-body">
+							<p>
+								Connection Status:
+								<span id="conn-status-msg">Not Connected</span>
+							</p>
+							<p>Subscribed to : <span id="subbed-to">None</span></p>
+						</div>
+					</div>
+				</div>
+				<div class="col pb-2">
+					<div class="card mt-2 h-100">
+						<div class="card-body d-flex">
+							<h1 id="conn-status" class="m-auto">Not Connected</h1>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-4 mt-2">
+					<div class="card h-100">
+						<div class="card-header"><h5>Connect</h5></div>
+						<div class="card-body">
+							<input
+								id="input-host"
+								class="form-control"
+								type="text"
+								placeholder="Host (Default: broker.hivemq.com)"
+								aria-label="default"
+							/>
+							<input
+								id="input-port"
+								class="form-control mt-2"
+								type="number"
+								placeholder="Port (Default: 8000)"
+								aria-label="default"
+								maxlength="4"
+							/>
+							<div class="form-check form-switch mt-2">
+								<label class="form-check-label" for="chk-clean-session"
+									>Clean Sessions:</label
+								>
+								<input
+									class="form-check-input"
+									type="checkbox"
+									id="chk-clean-session"
+									checked
+								/>
+							</div>
+							<!-- <input
+									id="input-username"
+									class="form-control mt-2"
+									type="text"
+									placeholder="Username"
+									aria-label="default"
+								/>
+								<input
+									id="input-password"
+									class="form-control mt-2"
+									type="password"
+									placeholder="Password"
+									aria-label="default"
+								/> -->
+							<button
+								id="btn-connect"
+								class="form-control mt-2 btn btn-primary"
+							>
+								Connect
+							</button>
+							<button
+								id="btn-disconnect"
+								class="form-control mt-2 btn btn-danger"
+							>
+								Disconnect
+							</button>
+						</div>
+						<div class="card-header"><h5>Subscribe to a Topic</h5></div>
+						<div class="card-body">
+							<input
+								id="input-subscription"
+								class="form-control"
+								type="text"
+								placeholder="Topic (Anything)"
+								aria-label="default"
+							/>
+							<button
+								id="btn-subscribe"
+								class="form-control mt-2 btn btn-primary"
+							>
+								Subscribe
+							</button>
+						</div>
+						<div class="card-header"><h5>Send a Message</h5></div>
+						<div class="card-body">
+							<input
+								id="input-message"
+								class="form-control"
+								type="text"
+								placeholder="Your Message (Default: Hello)"
+								aria-label="default"
+							/>
+							<button
+								id="btn-send-message"
+								class="form-control mt-2 btn btn-primary"
+							>
+								Send Message
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 mt-2">
+					<div class="card h-100">
+						<div class="card-header"><h5>Messages</h5></div>
+						<div id="out-messages" class="card-body">
+							Connect and subscribe to a network to recieve messages (❁´◡`❁)
+							<br />
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4 mt-2">
+					<div class="card h-100">
+						<div class="card-header"><h5>Publish Location</h5></div>
+						<div class="card-body">
+							<div class="user_publish_data" style="display:none">
+								<p>Your location is tracked under the following topic, you can use is to see your location live:</p>
+								<input
+									id="input-location-id"
+									class="form-control text-center"
+									type="text"
+									aria-label="default"
+									disabled
+								/>
+							</div>
+							<button
+								id="btn-publish-location"
+								class="form-control mt-2 btn btn-primary"
+								onclick="publishUserLocation()"
+							>
+								Publish Location
+							</button>							
+						</div>
+						<div class="card-body"><div id="map"></div>
+						<div class="card-body">
+								<p>Your location is tracked under the following topic, you can use is to see your location live:</p>
+								<input
+									id="input-tracker-id"
+									class="form-control text-center"
+									type="text"
+									aria-label="default"
+								/>
+							<button
+								id="btn-track-location"
+								class="form-control mt-2 btn btn-primary"
+								onclick="trackUserLocation()"
+							>
+								Track Location
+							</button>
+							
+						</div>
+						<div class="user_publish_data" style="display:none">
+							<p>Your location is tracked under the following topic, you can use is to see your location live:</p>
+							<input
+								id="input-location-id"
+								class="form-control text-center"
+								type="text"
+								aria-label="default"
+								disabled
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Paho -->
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"
+			type="text/javascript"
+		></script>
+		<!-- Leaflet JS -->
+		<script
+			src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+			integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+			crossorigin=""
+		></script>
+		<!-- JavaScript Bundle with Popper -->
+		<script
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+			integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+			crossorigin="anonymous"
+		></script>
+		<script
+			src="https://code.jquery.com/jquery-3.6.0.min.js"
+			integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+			crossorigin="anonymous"
+		></script>
+		<script>
+			//Elements
+			const formConnect = document.getElementById("form-connect");
+			const btnConnect = document.getElementById("btn-connect");
+			const btnDisconnect = document.getElementById("btn-disconnect");
+			const btnSubscribe = document.getElementById("btn-subscribe");
+			const inputHost = document.getElementById("input-host");
+			const inputPort = document.getElementById("input-port");
+			const chkCleanSession = document.getElementById("chk-clean-session");
+			const inputUsername = document.getElementById("input-username");
+			const inputPassword = document.getElementById("input-password");
+			const inputTopic = document.getElementById("input-subscription");
+			const connStatus = document.getElementById("conn-status");
+			const connStatusMsg = document.getElementById("conn-status-msg");
+			const subbedTo = document.getElementById("subbed-to");
+			const outMessages = document.getElementById("out-messages");
+			const btnSendMessage = document.getElementById("btn-send-message");
+			const inputMessage = document.getElementById("input-message");
+			const inputLocationId = document.getElementById('input-location-id')
+			const btnPublishLocation = document.getElementById('btn-publish-location')
+
+			var mqtt, pmqtt, tmqtt;
+			var connected_flag = 0;
+			var reconnectTimeout = 2000; // how long before re-attempting to connect
+			var host = "broker.emqx.io"; // default host
+			var port = 8083; // default port
+			var row = 0;
+			var out_msg = "";
+			var geolocation_flag = false;
+			var cname = "cname-" + Math.floor(Math.random() * 10000);
+			var mcount =0;
+
+			var geojson = {type:"geojson"};
+			var marker, circle;
+
+			//map config (start)
+			var map = L.map("map").setView([6.927079, 79.861243], 13);
+			L.tileLayer(
+				"https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}",
+				{
+					attribution:
+						'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+					maxZoom: 18,
+					id: "mapbox/streets-v11",
+					tileSize: 512,
+					zoomOffset: -1,
+					accessToken:
+						"pk.eyJ1IjoiZ2lqdWdpamphIiwiYSI6ImNsMW00Y2J6dzBhaGIzbHRjdXVsY3U4dmMifQ.hr-bQIZ81gJFU4TSTH39ZQ",
+				}
+			).addTo(map);
+			// map config (end)
+
+			function updateMapMarker(name,position){
+				// update map markers
+				if(marker) {
+					map.removeLayer(marker)
+				}
+
+				if(circle) {
+					map.removeLayer(circle)
+				}
+
+				marker = L.marker([position.lat, position.lon])
+				circle = L.circle([position.lat, position.lon], {radius: position.accuracy})
+
+				var featureGroup = L.featureGroup([marker, circle]).addTo(map)
+
+				map.fitBounds(featureGroup.getBounds())
+
+
+			}
+			(function () {
+				btnDisconnect.style.display = "none";
+
+				// MQTTconnect();
+			})();
+
+			// publish user location
+			function publishUserLocation(){
+				fetchUserLocation();
+
+				if(!connected_flag){
+					alert("Please connect to a network before you continue")
+					return false;
+				}
+				mqtt.send(cname, JSON.stringify(geojson), 1, false);
+				console.log('sending coordinates')
+				console.log("connected to " + host + ":" + port);
+				// on successfull subscribe send location updates
+				sendLocation();
+				inputLocationId.value = cname;
+				document.querySelector(".user_publish_data").style.display = "block";
+				setInterval(() => {
+					sendLocation();
+				}, 5000);
+			}
+
+			function trackUserLocation(){
+				if(!connected_flag){
+					alert("Please connect to a network before you continue")
+					return false;
+				}
+				if (document.getElementById('input-tracker-id').value == "") {
+					alert('Tracker input cannot be empty')
+					
+				} else {
+					trackerId= document.getElementById('input-tracker-id').value ;
+				}
+				
+				mqtt.subscribe(trackerId, {
+					qos: 1,
+					onSuccess: (resp) => {
+						// on successfull subscribe
+						// console.log(resp);
+					},
+					onFailure: (resp) => {
+						//on failing to subscribe
+						// console.log(resp);
+					},
+				});
+				return false;
+			}
+
+			//send location after connection (callback)
+			function sendLocation(){
+				try {
+					fetchUserLocation();
+					mqtt.send(cname, JSON.stringify(geojson), 1, true);
+				} catch (error) {
+					console.log(error)					
+				}
+				
+			}
+
+			// fetch user location
+			function fetchUserLocation() {
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(getLocation);
+					geolocation_flag = true;
+				} else {
+					geolocation_flag = false;
+					alert("Geolocation is not supported by this browser.");
+				}
+			}
+
+			// callback function after fetching location
+			function getLocation(geolocation) {
+				geojson.lat = geolocation.coords.latitude;
+				geojson.lon = geolocation.coords.longitude;
+				geojson.accuracy = geolocation.coords.accuracy;
+				geojson.temp = Math.floor(Math.random() * 100) + "°C";
+			}
+
+			// user initiated connection
+			btnConnect.addEventListener("click", () => {
+				MQTTconnect();
+			});
+
+			// user disconnected
+			btnDisconnect.addEventListener("click", () => {
+				if (connected_flag == 1) {
+					mqtt.disconnect();
+
+					//show connect button
+					btnConnect.style.display = "block";
+					btnDisconnect.style.display = "none";
+					
+				}
+			});
+
+			// Subscribe to topic
+			btnSubscribe.addEventListener("click", () => {
+				if (connected_flag == 0) {
+					out_msg = "Not Connected so can't subscribe";
+					return false;
+				}
+				let subTopic = "";
+				if (inputTopic.value == "") {
+					subTopic = "test-topic-" + Math.floor(Math.random() * 10000);
+					inputTopic.value = subTopic;
+				} else {
+					subTopic = inputTopic.value;
+				}
+				
+				mqtt.subscribe(inputTopic.value, {
+					qos: 1,
+					onSuccess: (resp) => {
+						// on successfull subscribe
+						// console.log(resp);
+					},
+					onFailure: (resp) => {
+						//on failing to subscribe
+						// console.log(resp);
+					},
+				});
+				
+				subbedTo.innerHTML = inputTopic.value;
+				return false;
+			});
+
+			// Send Message
+			btnSendMessage.addEventListener("click", () => {
+				if (connected_flag == 0) {
+					out_msg = "<b>Not Connected so can't send</b>";
+					outMessages.innerHTML = out_msg;
+					return false;
+				}
+
+				if (inputMessage.value == "") {
+					ms = "test-message-" + Math.floor(Math.random() * 10000);
+				} else {
+					ms = inputMessage.value;
+				}
+
+				var msg = {
+					type: "message",
+					msg: ms,
+				};
+
+				let messageString = JSON.stringify(msg);
+				var message = new Paho.MQTT.Message(messageString);
+
+				if (inputTopic.value == "") {
+					message.destinationName =
+						"test-topic-" + Math.floor(Math.random() * 10000);
+				} else {
+					message.destinationName = inputTopic.value;
+				}
+
+				message.qos = 1;
+				message.retained = true;
+
+				mqtt.send(message);
+				// mqtt.send(inputTopic.value, messageString, 1, true);
+			});
+
+			// make connection to mqtt
+			function MQTTconnect() {
+
+				//check if input host and port emplty, if yes continue with default values
+				var s = inputHost.value;
+				var p = inputPort.value;
+				if (p != "") {
+					port = parseInt(p);
+				}
+				if (s != "") {
+					host = s;
+				}
+				inputHost.value = host;
+				inputPort.value = port;
+
+				var clean_session = 1;
+				if (chkCleanSession.checked) {
+					clean_session = 1;
+				} else {
+					clean_session = 0;
+				}
+
+				//connection status message
+				connStatusMsg.innerHTML = "Connecting to " + host + " on port " + port;
+
+				// mqtt = new Paho.MQTT.Client(host, port, cname);
+				mqtt = new Paho.MQTT.Client(host, port, cname);
+				mqtt.disconnectedPublishing = true;
+
+				// set connection options;
+				var options = {
+					timeout: 300,
+					onSuccess: onConnect,
+					onFailure: onFailure,
+				};
+
+				mqtt.onConnectionLost = onConnectionLost;
+				mqtt.onMessageArrived = messageArrived;
+				// mqtt.onConnected = onConnected;
+				mqtt.connect(options);
+			}
+
+			// on connection successful
+			function onConnect() {
+				connected_flag = 1;
+				// hide connect button & show disconnect button
+				btnConnect.style.display = "none";
+				btnDisconnect.style.display = "block";
+				inputHost.disabled = true;
+				inputPort.disabled = true;
+
+				//connection status
+				connStatus.innerHTML = "Connected";
+
+				//connection status message
+				connStatusMsg.innerHTML = "Listening to " + host + " on port " + port;
+			}
+
+			// on connection failed
+			function onFailure() {
+				connected_flag = 0;
+				connStatusMsg.innerHTML = "Connection Failed- Retrying";
+				setTimeout(MQTTconnect, reconnectTimeout);
+			}
+
+			// when the the connection is lost
+			function onConnectionLost(resp) {
+				btnDisconnect.style.display = "none";
+				btnConnect.style.display = "block";
+				inputHost.disabled = false;
+				inputPort.disabled = false;
+				
+				outMessages.innerHTML +=
+					"Disconnected<br>";
+				connStatus.innerHTML = "Not Connected";
+				connStatusMsg.innerHTML = "Connection Lost";
+				subbedTo.innerHTML = "None";
+
+				connected_flag = 0;
+			}
+
+			// when a message is recieved
+			function messageArrived(r_message) {
+				if (!mcount) outMessages.innerHTML = "";
+				var messageObj= JSON.parse(r_message.payloadString);
+				if(messageObj.type=="message"){
+				out_msg =
+					"<b>" +
+					r_message.destinationName +
+					": </b> " +
+					messageObj.msg +
+					"<br/>";
+				}else if(messageObj.type=="geojson"){
+				out_msg =
+					"Coordinates recieved for: " +
+					r_message.destinationName +	"<br/>";
+					updateMapMarker(r_message.destinationName, messageObj)
+				}else{
+					out_msg =
+					"<b>" +
+					r_message.destinationName +
+					": </b> " +
+					messageObj.msg +
+					"<br/>";
+				}
+
+					
+				try {
+					outMessages.innerHTML += out_msg;
+				} catch (err) {
+					outMessages.innerHTML = err.message;
+				}
+
+				if (row == 10) {
+					row = 1;
+					outMessages.innerHTML = out_msg;
+				} else row += 1;
+
+				mcount += 1;
+			}
+		</script>
+	</body>
+</html>
