@@ -15,5 +15,8 @@
 	"bugs": {
 		"url": "https://github.com/mzmarkib/mqtt_exersice/issues"
 	},
-	"homepage": "https://github.com/mzmarkib/mqtt_exersice#readme"
+	"homepage": "https://github.com/mzmarkib/mqtt_exersice#readme",
+	"engines": {
+		"node": "14.x"
+	}
 }
