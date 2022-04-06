@@ -1,19 +1,19 @@
 {
-  "name": "mqtt_exersice",
-  "version": "1.0.0",
-  "description": "mqtt_exersice",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mzmarkib/mqtt_exersice.git"
-  },
-  "author": "mzmarkib",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/mzmarkib/mqtt_exersice/issues"
-  },
-  "homepage": "https://github.com/mzmarkib/mqtt_exersice#readme"
+	"name": "mqtt_exersice",
+	"version": "1.0.0",
+	"description": "mqtt_exersice",
+	"main": "index.html",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mzmarkib/mqtt_exersice.git"
+	},
+	"author": "mzmarkib",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/mzmarkib/mqtt_exersice/issues"
+	},
+	"homepage": "https://github.com/mzmarkib/mqtt_exersice#readme"
 }
